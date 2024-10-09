@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<style>
+  body {
+    margin: 20px;
+    text-align: center;
+  }
+
+  #result {
+    margin-top: 20px;
+    display: none;
+  }
+
+  #passwordBox {
+    display: block;
+    margin: 20px auto;
+    width: 300px;
+    height: 40px;
+    text-align: center;
+    font-size: 16px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+</style>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Password Generator</title>
+</head>
+
+<body>
+  <h1>Generate a strong password on demand.</h1>
+    <p>
+        This password generator allows to generate a password of desired length up to 20 characters, with or without special characters, depending on parameters you choose. If you do not insert any parameters, it will generate an 8-character password without special characters.
+    </p>
+
+    <fieldset>
+        <legend>Password length</legend>
+        <form id="passwordForm">
+            <input type="number" id="length" name="length" min="1" max="20" required placeholder="8">
+        </fieldset>
+        <br><br>
+
+        <fieldset>
+            <legend>Include special characters?</legend>
+            <label>
+                <input type="radio" id="special_no" name="special_char" value="n" checked required>NO
+            </label>
+            <label>
+                <input type="radio" id="special_yes" name="special_char" value="y" required>YES
+            </label>
+        </fieldset>
+        <br><br>
+
+        <button type="submit">Generate</button>
+    </form>
+
+    <!-- This is the box where the generated password will be displayed -->
+    <div id="result" style="display: none;">
+        <p>Generated Password:</p>
+        <input type="text" id="passwordBox" readonly>
+    </div>
+
+    <!-- Error message display -->
+    <div id="error" style="color: red; display: none;"></div>
+
+  <script>
+    document.getElementById('passwordForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
+
+    const length = document.getElementById('length').value;
+    const special_char = document.querySelector('input[name="special_char"]:checked').value;
+
+    const response = await fetch('/generate-password', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ length: parseInt(length), special_char: special_char }),
+    });
+
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+
+    // Clear previous error message
+    errorDiv.style.display = 'none';
+
+    if (!response.ok) {
+    const errorData = await response.json();
+    errorDiv.textContent = 'Error: ' + errorData.error; // Set the error message
+    errorDiv.style.display = 'block'; // Show the error message
+    resultDiv.style.display = 'none'; // Hide the result box
+    return; // Exit the function early if there's an error
+}
+
+// If no error, display the password
+const data = await response.json();
+resultDiv.style.display = 'block'; // Show the result box
+document.getElementById('passwordBox').value = data.Password; // Show generated password
+});
+  </script>
+
+  <!-- Add a div for displaying error messages -->
+<div id="error" style="color: red; display: none;"></div>
+</body>
+
+</html>
